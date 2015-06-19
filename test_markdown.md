@@ -1,4 +1,3 @@
-<!-- start block -->
 # title
 
 <!-- start block -->
