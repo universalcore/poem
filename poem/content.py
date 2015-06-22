@@ -4,6 +4,12 @@ from markdown import markdown
 
 
 class Block(object):
+    types = {'heading', 'subheading', 'paragraph', 'image'}
+    type_re = {
+        re.compile(r'^# '): 'heading',
+        re.compile(r'^## '): 'subheading',
+        re.compile(r'^<img '): 'image',
+    }
 
     def __init__(self, raw_text):
         self.raw_text = raw_text
@@ -13,6 +19,12 @@ class Block(object):
 
     def html(self):
         return markdown(self.markdown())
+
+    def type(self):
+        for regex, type_ in Block.type_re.iteritems():
+            if regex.search(self.raw_text):
+                return type_
+        return 'paragraph'
 
 
 class Content(object):
@@ -53,3 +65,7 @@ This is paragraph 3.'''
     content = Content(raw)
     assert len(content.blocks) == 4
     assert content.markdown() == raw
+    assert content.blocks[0].type() == 'heading'
+    assert content.blocks[1].type() == 'paragraph'
+    assert content.blocks[2].type() == 'subheading'
+    assert content.blocks[3].type() == 'paragraph'
