@@ -11,4 +11,8 @@ def includeme(config):
         'delete_block', '/content/{id}/blocks/{block_id}/delete/')
     config.add_route(
         'create_block', '/content/{id}/new_block/')
+    config.add_route(
+        'select_new_block', '/content/{id}/select_new_block/')
+    config.add_route(
+        'select_new_heading_block', '/content/{id}/select_new_heading_block/')
     config.scan('.views')

@@ -8,16 +8,43 @@ class BlockViews(object):
 
     def __init__(self, request):
         self.request = request
+        self.content = TestContent(self.request.matchdict['id'])
+
+    def context(self, **kwargs):
+        defaults = {
+            'request': self.request,
+            'content': self.content
+        }
+        defaults.update(kwargs)
+        return defaults
 
     @view_config(route_name='edit_blocks',
                  renderer='poem:templates/blocks/edit_blocks.jinja2')
     def edit_blocks(self):
-        content = TestContent(self.request.matchdict['id'])
-        return {'content': content}
+        return self.context()
 
-    @view_config(route_name='create_block')
-    def create_block(self):
+    @view_config(route_name='edit_block')
+    def edit_block(self):
         pass
+
+    @view_config(route_name='edit_block_position')
+    def edit_block_position(self):
+        pass
+
+    @view_config(route_name='create_block',
+                 renderer='poem:templates/blocks/edit_block.jinja2')
+    def create_block(self):
+        return self.context()
+
+    @view_config(route_name='select_new_block',
+                 renderer='poem:templates/blocks/select_new_block.jinja2')
+    def select_new_block(self):
+        return self.context()
+
+    @view_config(route_name='select_new_heading_block',
+                 renderer='poem:templates/blocks/select_new_heading_block.jinja2')
+    def select_new_heading_block(self):
+        return self.context()
 
     @view_config(route_name='delete_block')
     def delete_block(self):
@@ -30,11 +57,3 @@ class BlockViews(object):
             raise HTTPNotFound
         return HTTPFound(
             location=self.request.route_url('edit_blocks', id=content.id))
-
-    @view_config(route_name='edit_block')
-    def edit_block(self):
-        pass
-
-    @view_config(route_name='edit_block_position')
-    def edit_block_position(self):
-        pass

@@ -1,0 +1,13 @@
+{% extends "templates/base.jinja2" %}
+
+{% block header %}
+<div class="page-title">{{ _('New block') }}</div>
+{% endblock %}
+
+{% block content %}
+<ul class="buttons">
+    <li><a href="{{ 'select_new_heading_block'|route_url(id=content.id) }}">{{ _('Heading') }}</a></li>
+    <li><a href="{{ 'create_block'|route_url(id=content.id) }}?t=paragraph">{{ _('Paragraph') }}</a></li>
+    <li><a href="{{ 'create_block'|route_url(id=content.id) }}?t=image">{{ _('Image') }}</a></li>
+</ul>
+{% endblock %}
