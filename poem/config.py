@@ -8,5 +8,7 @@ def includeme(config):
     config.add_route(
         'edit_block_position', '/content/{id}/blocks/{block_id}/position/')
     config.add_route(
+        'delete_block', '/content/{id}/blocks/{block_id}/delete/')
+    config.add_route(
         'create_block', '/content/{id}/new_block/')
     config.scan('.views')

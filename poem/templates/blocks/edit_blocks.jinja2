@@ -1,4 +1,25 @@
 {% extends "templates/base.jinja2" %}
 
+{% block header %}
+<div class="page-title">{{ _('Edit blocks') }}</div>
+{% endblock %}
+
 {% block content %}
+
+{% for block in content.blocks %}
+    <div class="editable-block">
+        <div class="title">{{ _(block.type|capitalize) }}</div>
+        <div class="content">{{ block.html() }}</div>
+        <ul class="buttons">
+            <li><a href="{{ 'edit_block'|route_url(id=content.id, block_id=block.id) }}">{{ _('Edit block') }}</a></li>
+            <li><a href="{{ 'edit_block_position'|route_url(id=content.id, block_id=block.id) }}">{{ _('Position block') }}</a></li>
+            <li><a href="{{ 'delete_block'|route_url(id=content.id, block_id=block.id) }}">{{ _('Remove block') }}</a></li>
+        </ul>
+    </div>
+{% endfor %}
+
+<ul class="buttons">
+    <li><a href="{{ 'create_block'|route_url(id=content.id) }}">{{ _('Add new block') }}</a></li>
+</ul>
+
 {% endblock %}

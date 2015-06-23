@@ -1,5 +1,8 @@
 import re
+import os
+from pkg_resources import resource_filename
 
+from jinja2 import Markup
 from markdown import markdown
 
 
@@ -27,13 +30,14 @@ class Block(object):
         return self.raw_text
 
     def html(self):
-        return markdown(self.markdown())
+        return Markup(markdown(self.markdown()))
 
 
 class Content(object):
     block_start_re = re.compile(r'<!-- block (?P<id>\d+) -->\s*\n')
 
-    def __init__(self, raw_text):
+    def __init__(self, id, raw_text):
+        self.id = id
         self.blocks = self.__class__.parse_blocks(raw_text)
 
     @classmethod
@@ -54,7 +58,37 @@ class Content(object):
                        for b in self.blocks)
 
     def html(self):
-        return markdown(self.markdown())
+        return Markup(markdown(self.markdown()))
+
+
+class TestContent(Content):
+
+    def __init__(self, id):
+        filepath = resource_filename('poem', 'data/%s.md' % id)
+        try:
+            os.mkdir(os.path.dirname(filepath))
+        except OSError:
+            pass
+        try:
+            with open(filepath) as f:
+                raw_text = f.read()
+        except IOError:
+            raw_text = '''<!-- block 1 -->
+# title
+
+<!-- block 2 -->
+This is paragraph 1.
+
+<!-- block 3 -->
+## subtitle
+
+<!-- block 4 -->
+This is paragraph 2.
+
+This is paragraph 3.'''
+            with open(filepath, 'w') as f:
+                f.write(raw_text)
+        super(TestContent, self).__init__(id, raw_text)
 
 
 if __name__ == '__main__':

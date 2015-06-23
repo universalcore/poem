@@ -1,5 +1,7 @@
 from pyramid.view import view_config
 
+from poem.content import TestContent
+
 
 class BlockViews(object):
 
@@ -9,10 +11,15 @@ class BlockViews(object):
     @view_config(route_name='edit_blocks',
                  renderer='poem:templates/blocks/edit_blocks.jinja2')
     def edit_blocks(self):
-        return {}
+        content = TestContent(self.request.matchdict['id'])
+        return {'content': content}
 
     @view_config(route_name='create_block')
     def create_block(self):
+        pass
+
+    @view_config(route_name='delete_block')
+    def delete_block(self):
         pass
 
     @view_config(route_name='edit_block')
