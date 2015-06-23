@@ -1,4 +1,5 @@
 from pyramid.view import view_config
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from poem.content import TestContent
 
@@ -20,7 +21,15 @@ class BlockViews(object):
 
     @view_config(route_name='delete_block')
     def delete_block(self):
-        pass
+        content = TestContent(self.request.matchdict['id'])
+        block_id = self.request.matchdict['block_id']
+        try:
+            content.delete_block(block_id)
+            content.save()
+        except ValueError:
+            raise HTTPNotFound
+        return HTTPFound(
+            location=self.request.route_url('edit_blocks', id=content.id))
 
     @view_config(route_name='edit_block')
     def edit_block(self):

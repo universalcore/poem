@@ -43,6 +43,9 @@ class Content(object):
     @classmethod
     def parse_blocks(cls, raw_text):
         matches = list(cls.block_start_re.finditer(raw_text))
+        if not matches:
+            return []
+
         slices = [(m1.end(), m2.start())
                   for m1, m2 in zip(matches, matches[1:])]
         slices.append((matches[-1].end(), len(raw_text)))
@@ -52,6 +55,14 @@ class Content(object):
     def move_block(self, current_index, new_index):
         block = self.blocks.pop(current_index)
         self.blocks.insert(new_index, block)
+
+    def delete_block(self, block_id):
+        block_id = int(block_id)
+        [(index, block)] = [(i, block)
+                            for i, block in enumerate(self.blocks)
+                            if block.id == block_id]
+        del self.blocks[index]
+        return block
 
     def markdown(self):
         return ''.join('<!-- block %s -->\n%s' % (b.id, b.markdown())
@@ -89,6 +100,11 @@ This is paragraph 3.'''
             with open(filepath, 'w') as f:
                 f.write(raw_text)
         super(TestContent, self).__init__(id, raw_text)
+
+    def save(self):
+        filepath = resource_filename('poem', 'data/%s.md' % self.id)
+        with open(filepath, 'w') as f:
+            f.write(self.markdown())
 
 
 if __name__ == '__main__':
