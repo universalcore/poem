@@ -26,6 +26,18 @@ class Block(object):
                 return type_
         return 'paragraph'
 
+    @classmethod
+    def make_markdown(cls, type, **kwargs):
+        if type == 'heading':
+            return '# %s\n' % kwargs['content']
+        if type == 'subheading':
+            return '## %s\n' % kwargs['content']
+        if type == 'image':
+            return '<img src="%s" alt="%s" />\n' % (
+                kwargs['image_url'],
+                kwargs['image_caption'])
+        return '%s\n' % kwargs['content']
+
     def markdown(self):
         return self.raw_text
 
@@ -63,6 +75,11 @@ class Content(object):
                             if block.id == block_id]
         del self.blocks[index]
         return block
+
+    def add_block(self, type, **kwargs):
+        raw_text = Block.make_markdown(type, **kwargs)
+        next_id = max(0, 0, *[block.id for block in self.blocks]) + 1
+        self.blocks.append(Block(next_id, raw_text))
 
     def markdown(self):
         return ''.join('<!-- block %s -->\n%s' % (b.id, b.markdown())

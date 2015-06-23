@@ -1,6 +1,9 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
+from deform import ValidationFailure
+
+from poem.forms import BlockEditForm
 from poem.content import TestContent
 
 
@@ -34,7 +37,23 @@ class BlockViews(object):
     @view_config(route_name='create_block',
                  renderer='poem:templates/blocks/edit_block.jinja2')
     def create_block(self):
-        return self.context()
+        block_type = self.request.GET.get('t', 'paragraph')
+        form = BlockEditForm(block_type=block_type)
+
+        if 'save' in self.request.POST:
+            try:
+                data = form.validate(self.request.POST.items())
+                data['type'] = data.pop('block_type')
+                self.content.add_block(**data)
+                self.content.save()
+                return HTTPFound(
+                    self.request.route_url('edit_blocks', id=self.content.id))
+            except ValidationFailure as e:
+                form = e
+
+        return self.context(
+            form=form.render(),
+            block_type=block_type)
 
     @view_config(route_name='select_new_block',
                  renderer='poem:templates/blocks/select_new_block.jinja2')
