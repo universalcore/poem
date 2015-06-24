@@ -7,6 +7,7 @@ from markdown import markdown
 
 
 class Block(object):
+    # TODO - these should probably be subclasses
     types = {'heading', 'subheading', 'paragraph', 'image'}
     type_re = {
         re.compile(r'^# '): 'heading',
@@ -18,6 +19,7 @@ class Block(object):
         self.raw_text = raw_text
         self.id = id
         self.type = self.__class__.parse_type(raw_text)
+        self.data = self.__class__.parse_data(raw_text, self.type)
 
     @classmethod
     def parse_type(cls, raw_text):
@@ -27,16 +29,38 @@ class Block(object):
         return 'paragraph'
 
     @classmethod
-    def make_markdown(cls, type, **kwargs):
+    def parse_data(self, raw_text, type):
         if type == 'heading':
-            return '# %s\n' % kwargs['content']
+            return {'content': raw_text[2:]}
         if type == 'subheading':
-            return '## %s\n' % kwargs['content']
+            return {'content': raw_text[3:]}
         if type == 'image':
-            return '<img src="%s" alt="%s" />\n' % (
-                kwargs['image_url'],
-                kwargs['image_caption'])
-        return '%s\n' % kwargs['content']
+            match = re.match(
+                r'^<img src="([^"]*)" alt="([^"]*)" />$', raw_text)
+            return {'image_url': match.group(1),
+                    'image_caption': match.group(2)}
+        return {'content': raw_text}
+
+    @classmethod
+    def make_markdown(cls, type, content=None, image_url=None,
+                      image_caption=None):
+        if type == 'heading':
+            return '# %s\n' % content
+        if type == 'subheading':
+            return '## %s\n' % content
+        if type == 'image':
+            return '<img src="%s" alt="%s" />\n' % (image_url, image_caption)
+        return '%s\n' % content
+
+    def update(self, raw_text=None, content=None, image_url=None,
+               image_caption=None):
+        if raw_text:
+            self.raw_text = raw_text
+            self.data = self.__class__.parse_data(raw_text, self.type)
+        else:
+            self.raw_text = self.__class__.make_markdown(
+                self.type, content, image_url, image_caption)
+            self.data = self.__class__.parse_data(self.raw_text, self.type)
 
     def markdown(self):
         return self.raw_text
