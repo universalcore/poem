@@ -88,7 +88,15 @@ class Content(object):
         return [Block(int(m.group('id')), raw_text[s[0]:s[1]])
                 for m, s in zip(matches, slices)]
 
+    def get_block(self, block_id):
+        block_id = int(block_id)
+        [block] = filter(lambda block: block.id == block_id,
+                         self.blocks)
+        return block
+
     def move_block(self, current_index, new_index):
+        if current_index == new_index:
+            return
         block = self.blocks.pop(current_index)
         self.blocks.insert(new_index, block)
 

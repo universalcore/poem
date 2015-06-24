@@ -1,5 +1,5 @@
 import colander
-from deform import Form, widget
+from deform import Button, Form, widget
 
 
 @colander.deferred
@@ -7,15 +7,9 @@ def block_type_validator(node, kwargs):
     return colander.Regex(r'^%s$' % kwargs.get('block_type', ''))
 
 
-@colander.deferred
-def block_type_default(node, kwargs):
-    return kwargs.get('block_type', '')
-
-
 class BlockSchema(colander.MappingSchema):
     block_type = colander.SchemaNode(
         colander.String(),
-        default=block_type_default,
         validator=block_type_validator,
         widget=widget.HiddenWidget())
 
@@ -59,4 +53,38 @@ class BlockEditForm(Form):
         }[block_type]
         schema = schema_cls().bind(block_type=block_type)
         # TODO trans
-        super(BlockEditForm, self).__init__(schema, buttons=('save', ))
+        super(BlockEditForm, self).__init__(
+            schema, buttons=(Button('save', 'Save'),))
+
+
+@colander.deferred
+def block_position_validator(node, kwargs):
+    return colander.Range(kwargs['min_pos'], kwargs['max_pos'])
+
+
+@colander.deferred
+def block_position_widget(node, kwargs):
+    return widget.SelectWidget(
+        values=map(
+            lambda num: (num, str(num)),
+            range(kwargs['min_pos'], kwargs['max_pos'] + 1)))
+
+
+class BlockPositionSchema(colander.MappingSchema):
+    position = colander.SchemaNode(
+        colander.Integer(),
+        validator=block_position_validator,
+        title='Set position',  # TODO trans
+        widget=block_position_widget)
+
+
+class BlockPositionForm(Form):
+
+    def __init__(self, max_pos, min_pos=1):
+        schema = BlockPositionSchema().bind(min_pos=min_pos, max_pos=max_pos)
+        # TODO trans
+        super(BlockPositionForm, self).__init__(
+            schema, buttons=(
+                Button('move_up', 'Move one up'),
+                Button('move_down', 'Move one down'),
+                Button('save', 'Save')))
