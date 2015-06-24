@@ -1,0 +1,13 @@
+{% extends "templates/base.jinja2" %}
+
+{% block header %}
+<div class="page-title">{{ _('New content') }}</div>
+{% endblock %}
+
+{% block content %}
+
+<form action="{{ request.current_route_url() }}" method="post">
+    {{ form|safe }}
+</form>
+
+{% endblock %}

@@ -5,21 +5,17 @@ from deform import ValidationFailure
 
 from poem.forms import BlockEditForm, BlockPositionForm
 from poem.content import TestContent
+from poem.views.base import ViewsBase
 
 
-class BlockViews(object):
+class BlockViews(ViewsBase):
 
     def __init__(self, request):
-        self.request = request
+        super(BlockViews, self).__init__(request)
         self.content = TestContent(self.request.matchdict['id'])
 
     def context(self, **kwargs):
-        defaults = {
-            'request': self.request,
-            'content': self.content
-        }
-        defaults.update(kwargs)
-        return defaults
+        return super(BlockViews, self).context(content=self.content, **kwargs)
 
     @view_config(route_name='edit_blocks',
                  renderer='poem:templates/blocks/edit_blocks.jinja2')

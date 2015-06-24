@@ -133,27 +133,20 @@ class TestContent(Content):
             with open(filepath) as f:
                 raw_text = f.read()
         except IOError:
-            raw_text = '''<!-- block 1 -->
-# title
-
-<!-- block 2 -->
-This is paragraph 1.
-
-<!-- block 3 -->
-## subtitle
-
-<!-- block 4 -->
-This is paragraph 2.
-
-This is paragraph 3.'''
-            with open(filepath, 'w') as f:
-                f.write(raw_text)
+            with open(filepath, 'w+') as f:
+                raw_text = ''
         super(TestContent, self).__init__(id, raw_text)
 
     def save(self):
         filepath = resource_filename('poem', 'data/%s.md' % self.id)
         with open(filepath, 'w') as f:
             f.write(self.markdown())
+
+    def rename(self, new_id):
+        filepath = resource_filename('poem', 'data/%s.md' % self.id)
+        filepath_new = resource_filename('poem', 'data/%s.md' % new_id)
+        os.rename(filepath, filepath_new)
+        self.id = new_id
 
 
 if __name__ == '__main__':

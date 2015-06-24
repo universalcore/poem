@@ -88,3 +88,20 @@ class BlockPositionForm(Form):
                 Button('move_up', 'Move one up'),
                 Button('move_down', 'Move one down'),
                 Button('save', 'Save')))
+
+
+class ContentSchema(colander.MappingSchema):
+    title = colander.SchemaNode(
+        colander.String(),
+        title='Title of this content')  # TODO trans
+
+
+class ContentEditForm(Form):
+
+    def __init__(self, is_new=False):
+        if is_new:
+            buttons = (Button('save', 'Save & next'),)
+        else:
+            buttons = (Button('save_edit', 'Save & edit blocks'),
+                       Button('save_finish', 'Save & finish editing'))
+        super(ContentEditForm, self).__init__(ContentSchema(), buttons=buttons)

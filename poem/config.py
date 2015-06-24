@@ -1,6 +1,12 @@
 def includeme(config):
     config.add_static_view(
         'static', 'poem:static', cache_max_age=3600)
+    # Content
+    config.add_route(
+        'create_content', '/new_content/')
+    config.add_route(
+        'edit_content', '/content/{id}/')
+    # Blocks
     config.add_route(
         'edit_blocks', '/content/{id}/blocks/')
     config.add_route(
