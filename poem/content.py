@@ -1,5 +1,6 @@
 import re
 import os
+import glob
 from pkg_resources import resource_filename
 
 from jinja2 import Markup
@@ -122,6 +123,9 @@ class Content(object):
 
 
 class TestContent(Content):
+    '''
+    TODO: replace this subclass with proper storage
+    '''
 
     def __init__(self, id):
         filepath = resource_filename('poem', 'data/%s.md' % id)
@@ -147,6 +151,13 @@ class TestContent(Content):
         filepath_new = resource_filename('poem', 'data/%s.md' % new_id)
         os.rename(filepath, filepath_new)
         self.id = new_id
+
+    @classmethod
+    def all(cls):
+        filepath = resource_filename('poem', 'data/*.md')
+        filenames = [os.path.splitext(os.path.basename(n))[0]
+                     for n in glob.glob(filepath)]
+        return [TestContent(fn) for fn in filenames]
 
 
 if __name__ == '__main__':

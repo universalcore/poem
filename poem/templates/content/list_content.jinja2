@@ -1,0 +1,21 @@
+{% extends "templates/base.jinja2" %}
+
+{# NO MOCKUPS FOR THIS PAGE #}
+
+{% block header %}
+<div class="page-title">{{ _('All content') }}</div>
+{% endblock %}
+
+{% block content %}
+
+<ul class="content-list">
+{% for content in content_list %}
+	<li class="content-item">
+		<h3>{{ content.id }}</h3>
+		<a href="{{ 'preview_content'|route_url(id=content.id) }}">{{ _('Preview')}}</a> |
+		<a href="{{ 'edit_content'|route_url(id=content.id) }}">{{ _('Edit')}}</a>
+	</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

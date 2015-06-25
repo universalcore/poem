@@ -41,7 +41,9 @@ class ContentViews(ViewsBase):
                 if 'save_edit' in self.request.POST:
                     return HTTPFound(
                         self.request.route_url('edit_blocks', id=content.id))
-                # TODO save_finish
+                if 'save_finish' in self.request.POST:
+                    return HTTPFound(
+                        self.request.route_url('list_content'))
             except ValidationFailure as e:
                 form = e.render()
         else:
@@ -50,3 +52,14 @@ class ContentViews(ViewsBase):
         return self.context(
             form=form,
             content=content)
+
+    @view_config(route_name='list_content',
+                 renderer='poem:templates/content/list_content.jinja2')
+    def list_content(self):
+        return self.context(content_list=TestContent.all())
+
+    @view_config(route_name='preview_content',
+                 renderer='poem:templates/content/preview_content.jinja2')
+    def preview_content(self):
+        content = TestContent(self.request.matchdict['id'])
+        return self.context(content=content)

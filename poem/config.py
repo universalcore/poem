@@ -6,6 +6,10 @@ def includeme(config):
         'create_content', '/new_content/')
     config.add_route(
         'edit_content', '/content/{id}/')
+    config.add_route(
+        'list_content', '/content/')
+    config.add_route(
+        'preview_content', '/content/{id}/preview/')
     # Blocks
     config.add_route(
         'edit_blocks', '/content/{id}/blocks/')
