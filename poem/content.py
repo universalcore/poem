@@ -121,8 +121,8 @@ class Content(object):
 
     def add_block(self, type_name, data):
         next_id = max(0, 0, *[block.id for block in self.blocks]) + 1
-        block_cls = filter(lambda cls: cls.type_name == type_name,
-                           get_block_classes())
+        [block_cls] = filter(lambda cls: cls.type_name == type_name,
+                             get_block_classes())
         self.blocks.append(block_cls(next_id, data))
 
     def markdown(self):

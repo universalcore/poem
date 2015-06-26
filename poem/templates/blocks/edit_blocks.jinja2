@@ -8,7 +8,7 @@
 
 {% for block in content.blocks %}
     <div class="editable-block">
-        <div class="title">{{ _(block.type|capitalize) }}</div>
+        <div class="title">{{ _(block.type_name|capitalize) }}</div>
         <div class="content">{{ block.html() }}</div>
         <ul class="buttons">
             <li><a href="{{ 'edit_block'|route_url(id=content.id, block_id=block.id) }}">{{ _('Edit block') }}</a></li>

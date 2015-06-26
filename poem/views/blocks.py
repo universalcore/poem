@@ -35,7 +35,7 @@ class BlockViews(ViewsBase):
             try:
                 data = form.validate(self.request.POST.items())
                 data.pop('block_type')
-                block.update(**data)
+                block.update(data)
                 self.content.save()
                 return HTTPFound(
                     self.request.route_url('edit_blocks', id=self.content.id))
@@ -43,7 +43,7 @@ class BlockViews(ViewsBase):
                 form = e.render()
         else:
             data = block.data.copy()
-            data['block_type'] = block.type
+            data['block_type'] = block.type_name
             form = form.render(data)
 
         return self.context(
@@ -96,8 +96,8 @@ class BlockViews(ViewsBase):
         if 'save' in self.request.POST:
             try:
                 data = form.validate(self.request.POST.items())
-                data['type'] = data.pop('block_type')
-                self.content.add_block(**data)
+                type_name = data.pop('block_type')
+                self.content.add_block(type_name, data)
                 self.content.save()
                 return HTTPFound(
                     self.request.route_url('edit_blocks', id=self.content.id))

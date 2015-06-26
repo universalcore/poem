@@ -1,6 +1,6 @@
 {% extends "templates/base.jinja2" %}
 
-{% set block_type=block_type or block.type %}
+{% set block_type=block_type or block.type_name %}
 
 {% block header %}
 <div class="page-title">{{ _(block_type|capitalize) }}</div>

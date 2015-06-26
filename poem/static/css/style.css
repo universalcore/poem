@@ -20,7 +20,7 @@
         #content .editable-block { padding: 0 12px; margin: 15px 0; }
             #content .editable-block > * { border: 1px solid #d9d9d9; }
             #content .editable-block .title { font-size: 1.1em; text-transform: uppercase; padding: 8px 8px; text-align: center; background: #000 ;}
-            #content .editable-block .content { padding: 0 0 0 16px; }
+            #content .editable-block .content { padding: 0 12px; }
         #content .content-preview { padding: 0 12px; }
 
 /*  FOOTER  */
