@@ -10,8 +10,9 @@ from markdown import markdown
 def get_block_classes():
     # list is ordered for correct parsing
     return [
-        HeadingBlock,
         ImageBlock,
+        SubheadingBlock,
+        HeadingBlock,
         ParagraphBlock
     ]
 
@@ -35,9 +36,7 @@ class Block(object):
         return match.groupdict()
 
     def update(self, new_data):
-        data = self.data.copy()
-        data.update(new_data)
-        return self.__class__(self.id, data)
+        self.data.update(new_data)
 
     def markdown(self):
         return self.template % self.data
@@ -59,25 +58,20 @@ class ImageBlock(Block):
 
 
 class HeadingBlock(Block):
-    pattern = re.compile(r'^(?P<level>#{1,3})(?P<content>.*)$')
-    levels = [(1, 'heading'), (2, 'subheading'), (3, 'subsubheading')]
+    type_name = 'heading'
+    pattern = re.compile(r'^# (?P<content>.*)$')
+    template = '# %(content)s'
 
-    @property
-    def level(self):
-        return int(self.data['level'])
 
-    @property
-    def type_name(self):
-        return dict(self.levels)[self.level]
-
-    @property
-    def template(self):
-        hashes = '#' * self.level
-        return '%s %(content)s' % (hashes, )
+class SubheadingBlock(Block):
+    type_name = 'subheading'
+    pattern = re.compile(r'^## (?P<content>.*)$')
+    template = '## %(content)s'
 
 
 class Content(object):
-    block_start_re = re.compile(r'<!-- block (?P<id>\d+) -->\s*\n')
+    block_start_re = re.compile(r'^<!-- block (?P<id>\d+) -->\s*\n',
+                                re.MULTILINE)
 
     def __init__(self, id, raw_text):
         self.id = id
@@ -99,10 +93,10 @@ class Content(object):
     def parse_block(cls, id, block_text):
         for block_cls in get_block_classes():
             try:
-                data = block_cls.parse_data(block_text)
-                return block_cls(id, data)
+                data = block_cls.parse_data(block_text.strip())
             except ValueError:
-                pass
+                continue
+            return block_cls(id, data)
         raise ValueError('%r block could not be parsed' % (block_text,))
 
     def get_block(self, block_id):
@@ -125,14 +119,15 @@ class Content(object):
         del self.blocks[index]
         return block
 
-    def add_block(self, type, **kwargs):
-        raw_text = Block.make_markdown(type, **kwargs)
+    def add_block(self, type_name, data):
         next_id = max(0, 0, *[block.id for block in self.blocks]) + 1
-        self.blocks.append(Block(next_id, raw_text))
+        block_cls = filter(lambda cls: cls.type_name == type_name,
+                           get_block_classes())
+        self.blocks.append(block_cls(next_id, data))
 
     def markdown(self):
-        return '\n'.join('<!-- block %s -->\n%s' % (b.id, b.markdown())
-                         for b in self.blocks)
+        return '\n\n'.join('<!-- block %s -->\n%s' % (b.id, b.markdown())
+                           for b in self.blocks)
 
     def html(self):
         return Markup(markdown(self.markdown()))
@@ -179,27 +174,36 @@ class TestContent(Content):
 if __name__ == '__main__':
     raw = '''<!-- block 1 -->
 # title
+
 <!-- block 2 -->
 This is paragraph 1.
+
 <!-- block 3 -->
 ## subtitle
+
 <!-- block 4 -->
 This is paragraph 2.
 
 And it carries on here.
+
 <!-- block 5 -->
 ![Cute doggie](http://i.imgur.com/rhd1TFF.jpg)
+
 <!-- block 6 -->
 This is paragraph 3.'''
 
-    content = Content(raw)
-    assert len(content.blocks) == 4
+    content = Content('foo', raw)
+    assert len(content.blocks) == 6
     assert content.markdown() == raw
     assert content.blocks[0].id == 1
     assert content.blocks[1].id == 2
     assert content.blocks[2].id == 3
     assert content.blocks[3].id == 4
-    assert content.blocks[0].type == 'heading'
-    assert content.blocks[1].type == 'paragraph'
-    assert content.blocks[2].type == 'subheading'
-    assert content.blocks[3].type == 'paragraph'
+    assert content.blocks[4].id == 5
+    assert content.blocks[5].id == 6
+    assert content.blocks[0].type_name == 'heading'
+    assert content.blocks[1].type_name == 'paragraph'
+    assert content.blocks[2].type_name == 'subheading'
+    assert content.blocks[3].type_name == 'paragraph'
+    assert content.blocks[4].type_name == 'image'
+    assert content.blocks[5].type_name == 'paragraph'
