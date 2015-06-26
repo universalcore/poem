@@ -7,71 +7,71 @@ from jinja2 import Markup
 from markdown import markdown
 
 
+def get_block_classes():
+    # list is ordered for correct parsing
+    return [
+        ImageBlock,
+        SubheadingBlock,
+        HeadingBlock,
+        ParagraphBlock
+    ]
+
+
 class Block(object):
-    # TODO - these should probably be subclasses
-    types = {'heading', 'subheading', 'paragraph', 'image'}
-    type_re = {
-        re.compile(r'^# '): 'heading',
-        re.compile(r'^## '): 'subheading',
-        re.compile(r'^<img '): 'image',
-    }
 
-    def __init__(self, id, raw_text):
-        self.raw_text = raw_text
+    def __init__(self, id, data):
         self.id = id
-        self.type = self.__class__.parse_type(raw_text)
-        self.data = self.__class__.parse_data(raw_text, self.type)
+        self.data = data
 
     @classmethod
-    def parse_type(cls, raw_text):
-        for regex, type_ in Block.type_re.iteritems():
-            if regex.search(raw_text):
-                return type_
-        return 'paragraph'
+    def test(cls, raw_text):
+        match = cls.pattern.search(raw_text)
+        return bool(match)
 
     @classmethod
-    def parse_data(self, raw_text, type):
-        if type == 'heading':
-            return {'content': raw_text[2:]}
-        if type == 'subheading':
-            return {'content': raw_text[3:]}
-        if type == 'image':
-            match = re.match(
-                r'^<img src="([^"]*)" alt="([^"]*)" />$', raw_text)
-            return {'image_url': match.group(1),
-                    'image_caption': match.group(2)}
-        return {'content': raw_text}
+    def parse_data(cls, raw_text):
+        match = cls.pattern.search(raw_text)
+        if not match:
+            raise ValueError('%r does not match %s' % (raw_text, cls.__name__))
+        return match.groupdict()
 
-    @classmethod
-    def make_markdown(cls, type, content=None, image_url=None,
-                      image_caption=None):
-        if type == 'heading':
-            return '# %s\n' % content
-        if type == 'subheading':
-            return '## %s\n' % content
-        if type == 'image':
-            return '<img src="%s" alt="%s" />\n' % (image_url, image_caption)
-        return '%s\n' % content
-
-    def update(self, raw_text=None, content=None, image_url=None,
-               image_caption=None):
-        if raw_text:
-            self.raw_text = raw_text
-            self.data = self.__class__.parse_data(raw_text, self.type)
-        else:
-            self.raw_text = self.__class__.make_markdown(
-                self.type, content, image_url, image_caption)
-            self.data = self.__class__.parse_data(self.raw_text, self.type)
+    def update(self, new_data):
+        self.data.update(new_data)
 
     def markdown(self):
-        return self.raw_text
+        return self.template % self.data
 
     def html(self):
         return Markup(markdown(self.markdown()))
 
 
+class ParagraphBlock(Block):
+    type_name = 'paragraph'
+    pattern = re.compile(r'^(?P<content>.*)$', re.DOTALL)
+    template = '%(content)s'
+
+
+class ImageBlock(Block):
+    type_name = 'image'
+    pattern = re.compile(r'^!\[(?P<image_caption>.*)\]\((?P<image_url>.*)\)$')
+    template = '![%(image_caption)s](%(image_url)s)'
+
+
+class HeadingBlock(Block):
+    type_name = 'heading'
+    pattern = re.compile(r'^# (?P<content>.*)$')
+    template = '# %(content)s'
+
+
+class SubheadingBlock(Block):
+    type_name = 'subheading'
+    pattern = re.compile(r'^## (?P<content>.*)$')
+    template = '## %(content)s'
+
+
 class Content(object):
-    block_start_re = re.compile(r'<!-- block (?P<id>\d+) -->\s*\n')
+    block_start_re = re.compile(r'^<!-- block (?P<id>\d+) -->\s*\n',
+                                re.MULTILINE)
 
     def __init__(self, id, raw_text):
         self.id = id
@@ -86,8 +86,18 @@ class Content(object):
         slices = [(m1.end(), m2.start())
                   for m1, m2 in zip(matches, matches[1:])]
         slices.append((matches[-1].end(), len(raw_text)))
-        return [Block(int(m.group('id')), raw_text[s[0]:s[1]])
+        return [cls.parse_block(int(m.group('id')), raw_text[s[0]:s[1]])
                 for m, s in zip(matches, slices)]
+
+    @classmethod
+    def parse_block(cls, id, block_text):
+        for block_cls in get_block_classes():
+            try:
+                data = block_cls.parse_data(block_text.strip())
+            except ValueError:
+                continue
+            return block_cls(id, data)
+        raise ValueError('%r block could not be parsed' % (block_text,))
 
     def get_block(self, block_id):
         block_id = int(block_id)
@@ -109,14 +119,15 @@ class Content(object):
         del self.blocks[index]
         return block
 
-    def add_block(self, type, **kwargs):
-        raw_text = Block.make_markdown(type, **kwargs)
+    def add_block(self, type_name, data):
         next_id = max(0, 0, *[block.id for block in self.blocks]) + 1
-        self.blocks.append(Block(next_id, raw_text))
+        [block_cls] = filter(lambda cls: cls.type_name == type_name,
+                             get_block_classes())
+        self.blocks.append(block_cls(next_id, data))
 
     def markdown(self):
-        return ''.join('<!-- block %s -->\n%s' % (b.id, b.markdown())
-                       for b in self.blocks)
+        return '\n\n'.join('<!-- block %s -->\n%s' % (b.id, b.markdown())
+                           for b in self.blocks)
 
     def html(self):
         return Markup(markdown(self.markdown()))
@@ -173,16 +184,26 @@ This is paragraph 1.
 <!-- block 4 -->
 This is paragraph 2.
 
+And it carries on here.
+
+<!-- block 5 -->
+![Cute doggie](http://i.imgur.com/rhd1TFF.jpg)
+
+<!-- block 6 -->
 This is paragraph 3.'''
 
-    content = Content(raw)
-    assert len(content.blocks) == 4
+    content = Content('foo', raw)
+    assert len(content.blocks) == 6
     assert content.markdown() == raw
     assert content.blocks[0].id == 1
     assert content.blocks[1].id == 2
     assert content.blocks[2].id == 3
     assert content.blocks[3].id == 4
-    assert content.blocks[0].type == 'heading'
-    assert content.blocks[1].type == 'paragraph'
-    assert content.blocks[2].type == 'subheading'
-    assert content.blocks[3].type == 'paragraph'
+    assert content.blocks[4].id == 5
+    assert content.blocks[5].id == 6
+    assert content.blocks[0].type_name == 'heading'
+    assert content.blocks[1].type_name == 'paragraph'
+    assert content.blocks[2].type_name == 'subheading'
+    assert content.blocks[3].type_name == 'paragraph'
+    assert content.blocks[4].type_name == 'image'
+    assert content.blocks[5].type_name == 'paragraph'

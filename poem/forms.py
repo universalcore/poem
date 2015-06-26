@@ -44,7 +44,7 @@ class BlockEditForm(Form):
 
     def __init__(self, block=None, block_type=None):
         if block:
-            block_type = block.type
+            block_type = block.type_name
         schema_cls = {
             'paragraph': ParagraphBlockSchema,
             'heading': HeadingBlockSchema,
