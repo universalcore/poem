@@ -3,8 +3,12 @@ import os
 import glob
 from pkg_resources import resource_filename
 
+from zope.interface import implements
+
 from jinja2 import Markup
 from markdown import markdown
+
+from poem.workflow import IContent
 
 
 def get_block_classes():
@@ -70,12 +74,21 @@ class SubheadingBlock(Block):
 
 
 class Content(object):
+    implements(IContent)
     block_start_re = re.compile(r'^<!-- block (?P<id>\d+) -->\s*\n',
                                 re.MULTILINE)
 
     def __init__(self, id, raw_text):
         self.id = id
         self.blocks = self.__class__.parse_blocks(raw_text)
+
+    @property
+    def wf_state(self):
+        if not self.id:
+            return 'new'
+        if not self.blocks:
+            return 'empty'
+        return 'ready'
 
     @classmethod
     def parse_blocks(cls, raw_text):

@@ -2,4 +2,5 @@ deform
 markdown
 pyramid
 pyramid_jinja2
+repoze.workflow
 waitress
