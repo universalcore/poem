@@ -12,10 +12,16 @@
 {% for content in content_list %}
 	<li class="content-item">
 		<h3>{{ content.id }}</h3>
-		<a href="{{ 'preview_content'|route_url(id=content.id) }}">{{ _('Preview')}}</a> |
-		<a href="{{ 'edit_content'|route_url(id=content.id) }}">{{ _('Edit')}}</a>
+		<a href="{{ 'preview_content'|route_url(id=content.id) }}">{{ _('Preview') }}</a> |
+		<a href="{{ 'edit_content'|route_url(id=content.id) }}">{{ _('Edit') }}</a>
 	</li>
 {% endfor %}
+</ul>
+
+<ul class="buttons">
+    <li>
+        <a href="{{ 'create_content'|route_url() }}">{{ _('Create new') }}</a>
+    </li>
 </ul>
 
 {% endblock %}

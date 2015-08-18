@@ -2,6 +2,7 @@ def includeme(config):
     config.add_static_view(
         'static', 'poem:static', cache_max_age=3600)
     # Content
+    config.add_route('home', '/')
     config.add_route(
         'create_content', '/new_content/')
     config.add_route(

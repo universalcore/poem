@@ -53,6 +53,8 @@ class ContentViews(ViewsBase):
             form=form,
             content=content)
 
+    @view_config(route_name='home',
+                 renderer='poem:templates/content/list_content.jinja2')
     @view_config(route_name='list_content',
                  renderer='poem:templates/content/list_content.jinja2')
     def list_content(self):
