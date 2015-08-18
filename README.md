@@ -9,10 +9,10 @@ The demo site is up at http://poem.qa-hub.unicore.io.
 
 At the moment POEM implements the core content authoring functionality. That is creating new content blocks, editing the content blocks and moving them around. The content block types that have been implemented are:
 
-    * paragraph
-    * image links
-    * heading
-    * subheading
+* paragraph
+* image links
+* heading
+* subheading
 
 Block types that have not been implemented yet are image file uploads and related content.
 
@@ -20,7 +20,7 @@ Block types that have not been implemented yet are image file uploads and relate
 
 A content item is currently stored as a simple Markdown file in the data/ folder. The content id is the file name. Blocks are delineated by block comments, e.g. ``<!-- block 2 -->``. Here is a complete sample:
 
-```
+```Markdown
 <!-- block 1 -->
 # Dogs
 
