@@ -1,0 +1,4 @@
+name: poem
+user: ubuntu
+buildscript: sideloader/deploy.sh
+postinstall: sideloader/postinstall.sh
